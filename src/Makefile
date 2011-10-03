@@ -4,9 +4,9 @@ CXXFLAGS = -std=gnu++0x -g
 SRCS     = $(wildcard *.cpp)
 OBJS     = $(addprefix build/,$(SRCS:.cpp=.o))
 
-all: build 
+all: $(OUTPUT)
 
-build: $(OBJS)
+$(OUTPUT): $(OBJS)
 	g++ -o $(OUTPUT) $(OBJS)
 
 build/%.o: %.cpp
