@@ -1,4 +1,4 @@
-all: build view
+all: build 
 
 build: 
 	latexmk report
