@@ -3,8 +3,17 @@
 #include "deconvfilter.h"
 #include "serverconnection.h"
 #include "image.h"
+#define DEBUG
 
 using namespace std;
+
+#ifdef DEBUG
+void info(string msg) {
+    cout << msg << endl;
+}
+#else
+#define info(x)
+#endif
 
 int main(int argc, char* argv[]){
 
@@ -22,6 +31,7 @@ int main(int argc, char* argv[]){
     {
 #pragma omp section
         {
+            info("retrieving image");
             image = connection.retrieveImage();
 #pragma omp flush
             received = true;
@@ -32,6 +42,7 @@ int main(int argc, char* argv[]){
                 sleep(10);
             }
 #pragma omp flush
+            info("sending image");
             connection.sendImage(filter.getImage()); // assuming we process the image in place
         }
 
@@ -43,6 +54,7 @@ int main(int argc, char* argv[]){
                 sleep(10);
             }
             received = false;
+            info("processing image");
             filter.process(image);
             processed = true;
 #pragma omp flush(processed)
