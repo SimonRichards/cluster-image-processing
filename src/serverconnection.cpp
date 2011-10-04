@@ -15,10 +15,14 @@ bool ServerConnection::connect() {
     return true;
 }
 
-void ServerConnection::sendImage(Image* image) {
-
+void ServerConnection::sendAndReceiveImage(Image* imageToSend) {
+ 
 }
 
 Image* ServerConnection::retrieveImage() {
 
+}
+
+bool ServerConnection::imageReady() {
+    return true;
 }

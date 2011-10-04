@@ -9,7 +9,8 @@ class ServerConnection {
         ServerConnection();
         ~ServerConnection();
 
+        bool imageReady();
         bool connect();
-        void sendImage(Image* image);
+        void sendAndReceiveImage(Image* imageToSend);
         Image* retrieveImage();
 };

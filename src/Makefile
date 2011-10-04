@@ -1,8 +1,8 @@
 CC       = mpic++
 OUTPUT   = cluster-rl
 INCLUDES = /usr/include/mpi
-CPPFLAGS = -std=gnu++0x -g
-CPPFLAGS+= -I$(INCLUDES)
+CXXFLAGS = -std=gnu++0x -g -fopenmp
+CXXFLAGS+= -I$(INCLUDES)
 SRCS     = $(wildcard *.cpp)
 OBJS     = $(addprefix build/,$(SRCS:.cpp=.o))
 
