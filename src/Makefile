@@ -1,19 +1,21 @@
-$(CC)    = g++
+CC       = mpic++
 OUTPUT   = cluster-rl
-CXXFLAGS = -std=gnu++0x -g
+INCLUDES = /usr/include/mpi
+CPPFLAGS = -std=gnu++0x -g
+CPPFLAGS+= -I$(INCLUDES)
 SRCS     = $(wildcard *.cpp)
 OBJS     = $(addprefix build/,$(SRCS:.cpp=.o))
 
 all: $(OUTPUT)
 
-$(OUTPUT): $(OBJS)
-	g++ -o $(OUTPUT) $(OBJS)
+cluster-rl: $(OBJS)
+	$(CC) -o build/$(OUTPUT) $(OBJS)
 
 build/%.o: %.cpp
 	@mkdir -p build
-	g++ $(CXXFLAGS) -o $@ -c $<
+	$(CC) $(CPPFLAGS) -o $@ -c $<
 
-rebuild: clean build
+rebuild: clean cluster-rl
 
 clean:
 	rm -rf build/*

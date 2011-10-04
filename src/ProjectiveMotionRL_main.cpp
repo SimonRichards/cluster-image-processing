@@ -5,7 +5,7 @@
 #include <cmath>
 #include <ctime>
 
-int main(int argc, char* argv[]){
+int mainOLD(int argc, char* argv[]){
 	srand(time(0));
 
 	int width, height;
