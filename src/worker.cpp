@@ -2,29 +2,29 @@
 #include <ctime>
 #include "debug.h"
 #include "deconvfilter.h"
-#include "serverconnection.h"
-#include "image.h"
-#define DEBUG
+#include "imagequeue.h"
+#define WIDTH 1024
+#define HEIGHT 1024
+#define NITER 1
+#define BUFFER_SIZE WIDTH*HEIGHT
 
 using namespace std;
 
 
 int main(int argc, char* argv[]){
 
-    DeconvFilter filter;
-    ServerConnection connection;
-    Image *image;
+    static double buffer[BUFFER_SIZE];
+    double* psf;
+    int psfWidth, psfHeight;
 
-    if (!connection.connect()) {
-        cerr << "Failed to connect" << endl;
-        return -1;
+    ImageQueue images(buffer, BUFFER_SIZE, "../images");
+    psf = images.getPsf(&psfWidth, &psfHeight);
+
+    DeconvFilter filter(WIDTH, HEIGHT, NITER, psf, psfWidth, psfHeight, buffer);
+
+    while(images.remain()) {
+        images.pop();
+        filter.process();
     }
-
-    while (connection.imageReady()) {
-        image = connection.retrieveImage();
-        filter.process(image);
-        connection.sendAndReceiveImage(image);
-    }
-
     return 0;
 }
