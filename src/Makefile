@@ -1,15 +1,17 @@
 CC       = mpic++
 OUTPUT   = cluster-rl
 INCLUDES = /usr/include/mpi
-CXXFLAGS = -std=gnu++0x -g -fopenmp
-CXXFLAGS+= -I$(INCLUDES)
+INCLUDES+= include
+CPPFLAGS = -std=gnu++0x -g -fopenmp
+CPPFLAGS+= $(addprefix -I,$(INCLUDES))
+CXXFLAGS = -Llib
 SRCS     = $(wildcard *.cpp)
 OBJS     = $(addprefix build/,$(SRCS:.cpp=.o))
 
 all: $(OUTPUT)
 
 cluster-rl: $(OBJS)
-	$(CC) -o build/$(OUTPUT) $(OBJS)
+	$(CC) -o build/$(OUTPUT) $(OBJS) $(CXXFLAGS)
 
 build/%.o: %.cpp
 	@mkdir -p build
