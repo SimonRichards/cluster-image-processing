@@ -10,14 +10,21 @@
 
 using namespace std;
 
-ImageQueue::ImageQueue(double* buffer, long size, string imagesDir) {
+static double hardCodedPsf[] = {1.0,2.0,3.0,2.0,1.0,
+                0.0,3.0,3.0,3.0,0.0,
+                3.0,3.0,5.0,3.0,3.0,
+                0.0,3.0,3.0,3.0,0.0,
+                1.0,2.0,3.0,2.0,1.0};
+
+/**
+ * Grabs all the *.fits file names from imagesDir and pushes them onto a stack
+ */
+ImageQueue::ImageQueue(double* buffer, long long size, string imagesDir) {
     image = buffer;
-    size  = bufferSize;
-    // Grab all the *.fits file names from the 'images' folder
+    bufferSize = size;
     imagesDir.append("/");
     DIR *dp = opendir (imagesDir.c_str());
     struct dirent *ep;
-
 
     if (dp != NULL) {;
         ep = readdir (dp);
@@ -49,25 +56,32 @@ ImageQueue::ImageQueue(double* buffer, long size, string imagesDir) {
 
 
 ImageQueue::~ImageQueue() {
-    delete []psf;
 }
 
+/**
+ * @param width the output psf width
+ * @param height the output psf height
+ * @return a pointer to the start of the psf data
+ */
 double* ImageQueue::getPsf(int* width, int* height) {
-    *width = *height = 10;
-    psf = new double[*width * *height];
-    return psf;
+    *width = *height = 5;
+    return hardCodedPsf;
 }
 
-long ImageQueue::pop() {
+/**
+ * Loads the next image from the stack off the hard disk and into the buffer.
+ */
+void ImageQueue::pop() {
     fitsfile *fptr;
     int status = 0,  nfound, anynull;
     long naxes[2], fpixel, npixels;
 
     string name = files.top();
-    if ( fits_open_file(&fptr, name.c_str(), READONLY, &status) ) {
+    outFile = name;
+    outFile.insert(name.length()-5, "fixed");
+    outFile.insert(outFile.find_last_of('/')+1,"out/");
+    if ( fits_open_file(&fptr, name.c_str(), READONLY, &status) )
         FERROR("Error opening file: %s code: %d", name.c_str(), status);
-        return -1;
-    }
     files.pop();
 
     fits_read_keys_lng(fptr, "NAXIS", 1, 2, naxes, &nfound, &status);
@@ -81,11 +95,37 @@ long ImageQueue::pop() {
     if (status) FERROR("Error reading file data: %s code: %d", name.c_str(), status);
 
     fits_close_file(fptr, &status);
-    if (status) FERROR("Error closing file data: %s code: %d", name.c_str(), status);
+    if (status)
+        FERROR("Error closing file data: %s code: %d", name.c_str(), status)
+    else
+        FPRINT("Read file %s size = %li", name.c_str(), npixels)
+}
 
-    FPRINT("Read file %s size = %li", name.c_str(), npixels);
+void ImageQueue::save() {
+    fitsfile *fptr;
+    int status = 0;
+    long fpixel = 1;
 
-    return npixels;
+    remove(outFile.c_str());
+
+    if ( fits_create_file(&fptr, outFile.c_str(), &status) )
+        FERROR("Error creating file: %s code: %d", outFile.c_str(), status);
+
+    long naxes[] = {1024,1024};
+
+    if (fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status))
+        FERROR("Error writing header: %s code: %d", outFile.c_str(), status);
+    cout << "Writing " << bufferSize << " pixels." << endl;
+
+    fits_write_img(fptr, TDOUBLE, fpixel, bufferSize, image, &status);
+    if (status) FERROR("Error writing file data: %s code: %d", outFile.c_str(), status);
+
+    fits_close_file(fptr, &status);
+    if (status)
+        FERROR("Error closing file: %s code: %d", outFile.c_str(), status)
+    else
+        FPRINT("Wrote file %s", outFile.c_str())
+
 }
 
 bool ImageQueue::remain() {

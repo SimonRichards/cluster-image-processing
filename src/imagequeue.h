@@ -5,14 +5,15 @@
 class ImageQueue {
     private:
         double* image;
-        long bufferSize;
-        double* psf;
+        long long bufferSize;
         std::stack<std::string> files;
+        std::string outFile;
 
     public:
-        ImageQueue(double* buffer, long size, std::string imagesDir);
+        ImageQueue(double* buffer, long long size, std::string imagesDir);
         ~ImageQueue();
-        long pop();
+        void pop();
+        void save();
         double* getPsf(int* width, int* height);
         bool remain();
 };

@@ -3,9 +3,10 @@ CC       = mpic++
 OUTPUT   = cluster-rl
 INCLUDES = /usr/include/mpi
 INCLUDES+= include
+FFT_FLAGS= -DUSE_FFT -lfftw3_omp -lfftw3 -lm -fopenmp -lrt
 CPPFLAGS = -std=gnu++0x -g -fopenmp -Wall -pedantic -Wshadow
 CPPFLAGS+= $(addprefix -I,$(INCLUDES))
-CXXFLAGS = -Llib -lfftw3_omp -lfftw3 -lm -fopenmp
+CXXFLAGS = -Llib
 SRCS     = $(wildcard *.cpp)
 OBJS     = $(addprefix build/,$(SRCS:.cpp=.o))
 

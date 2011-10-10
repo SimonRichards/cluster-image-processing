@@ -9,7 +9,7 @@
 #define ERROR(txt) {LOC std::cerr << txt << std::endl;}
 
 #if DEBUG_LEVEL > 0 // allow warnings
-#define FWARNING(fmt,...) {LOC printf(fmt,__VA_ARGS__);}
+#define FWARNING(fmt,...) {LOC printf(fmt"\n",__VA_ARGS__);}
 #define WARNING(txt) {LOC std::cout << txt << std::endl;}
 #else
 #define FWARNING(fmt,...)
@@ -17,14 +17,16 @@
 #endif
 
 #if DEBUG_LEVEL > 1 // allow info
-#define FPRINT(fmt,...) {LOC printf(fmt,__VA_ARGS__);}
+#define FPRINT(fmt,...) {LOC printf(fmt"\n",__VA_ARGS__);}
 #define PRINT(txt) {LOC std::cout << txt << std::endl;}
 #define VAL(txt) {LOC std::cout << text << std::endl;}
 #define VAR(text) {LOC std::cout << (#text) << "=" << text << std::endl;}
 
+//Performance timing
+
 #else
-#define FPRINT(fmt,...)
-#define PRINT(txt)
+#define FPRINT(fmt"\n",...)
+#define PRINT(txt"\n")
 #define VAL(txt)
 #define VAR(text)
 

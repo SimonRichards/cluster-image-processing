@@ -2,15 +2,26 @@
 
 #include "imagequeue.h"
 #include <fftw3.h>
+#include <vector>
 
 class DeconvFilter {
     private:
-        int _width;
-        int _height;
+        int _width, _height, _psfWidth, _psfHeight;
         unsigned int _niter;
         unsigned long _size;
         double* _buffer;
-        fftw_complex *in, *out, *scratch, *orig, *psf, *conjPsf;
+
+#ifndef USE_FFT
+        double *_psf, *orig, *img, *scratch, *scratch2;
+        void convolve(double* result, double* input); // with _psf is implicit
+        void divide(double* quotient, double* dividend, double* divisor);
+        void multiply(double* product, double* factorA, double* factorB);
+        void scale(double* product, double scalar);
+        void offset(double* product, double offset);
+
+        int psfStartOffset;
+#else
+        fftw_complex *in, *scratch, *orig, *fftPsf, *conjFftPsf;
         fftw_plan fftScratch;
         fftw_plan ifftScratch;
         fftw_plan fftInToScratch;
@@ -20,6 +31,7 @@ class DeconvFilter {
         void centrePsf(
                 fftw_complex* mat, double* input, int width, int height,
                 int psfWidth, int psfHeight);
+#endif
 
 
     public:
