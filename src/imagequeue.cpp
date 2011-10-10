@@ -10,11 +10,18 @@
 
 using namespace std;
 
+/*
 static double hardCodedPsf[] = {1.0,2.0,3.0,2.0,1.0,
                 0.0,3.0,3.0,3.0,0.0,
                 3.0,3.0,5.0,3.0,3.0,
                 0.0,3.0,3.0,3.0,0.0,
                 1.0,2.0,3.0,2.0,1.0};
+*/
+
+static double hardCodedPsf[] = {0,1,0,
+                                1,1,1,
+                                0,1,0};
+static int hardCodedPsfDim = 3;
 
 /**
  * Grabs all the *.fits file names from imagesDir and pushes them onto a stack
@@ -64,7 +71,7 @@ ImageQueue::~ImageQueue() {
  * @return a pointer to the start of the psf data
  */
 double* ImageQueue::getPsf(int* width, int* height) {
-    *width = *height = 5;
+    *width = *height = hardCodedPsfDim;
     return hardCodedPsf;
 }
 

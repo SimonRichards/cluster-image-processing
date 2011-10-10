@@ -1,5 +1,4 @@
 #include "deconvfilter.h"
-#include <iostream>
 #include "debug.h"
 #include <cstdio>
 #include <cstring>
@@ -15,23 +14,24 @@ void normalise(double* data, size_t length) {
     for (i = 0; i < length; i++)
         sum += data[i];
     for (i = 0; i < length; i++)
-        data[i] /= sum;
+        data[i] = 1;///= sum;
 }
 
 // Allocates scratch space for the algorithm and stores parameters.
 DeconvFilter::DeconvFilter(
         int width, int height, unsigned int niter,
         double* inputPsf, int psfWidth, int psfHeight, double* buffer) :
-    _width(width),
-    _height(height),
-    _psfWidth(psfWidth),
-    _psfHeight(psfHeight),
-    _niter(niter),
-    _size(width*height),
-    _buffer(buffer),
-    _psf(inputPsf),
-    orig(buffer) {
+_width(width),
+_height(height),
+_psfWidth(psfWidth),
+_psfHeight(psfHeight),
+_niter(niter),
+_size(width*height),
+_buffer(buffer),
+orig(buffer) {
     size_t psfSize = psfWidth * psfHeight;
+    _psf = new double[psfSize];
+    memcpy(_psf, inputPsf, psfSize*sizeof(*_psf));
     psfStartOffset = psfSize / 2;
     normalise(_psf, psfSize);
     img=new double[_size];
@@ -45,16 +45,31 @@ DeconvFilter::~DeconvFilter() {
     delete[] scratch;
 }
 
-// result = input*_psf
+#define NEW_DEAL
+// result = input * _psf
 void DeconvFilter::convolve(double* result, double* input) {
     int x, y, px, py, pIndex;
-    long long index = 0;
+    uint32_t index = 0;
     int pxOffset = _psfWidth/2;
     int pyOffset = _psfHeight/2;
-    for (x = 0; x < _width; x++) {
-        for (y = 0; y < _height; y++, index++) {
+    for (y = 0; y < _height; y++) {
+        for (x = 0; x < _width; x++, index++) {
             pIndex = -psfStartOffset;
             result[index] = 0;
+
+#ifdef NEW_DEAL
+
+            result[index] = input[index];
+            if (y > 0) result[index] += input[x + (y-1)*_height];
+            if (y < _height-1) result[index] += input[x + (y+1)*_height];
+            if (x > 0) result[index] += input[x-1 + y*_height];
+            if (x < _width-1) result[index] += input[x-1 + y*_height];
+            if (y > 0 && x > 0) result[index] += input[x + (y-1)*_height];
+            if (y < _height-1 && x > 0) result[index] += input[x + (y+1)*_height];
+            if (x > 0) result[index] += input[x-1 + y*_height];
+            if (x < _width-1) result[index] += input[x-1 + y*_height];
+            result[index] /= 9;
+#else
             for (px = 0; px < _psfWidth; px++) {
                 for (py = 0; py < _psfHeight; py++, pIndex++) {
                     int absX = x - pxOffset + px;
@@ -66,13 +81,44 @@ void DeconvFilter::convolve(double* result, double* input) {
                     if (
                             absY > 0 &&
                             absY < _height
-                       )
+                       ) {
                         result[index] += _psf[pIndex+psfStartOffset] * input[index + pIndex+psfStartOffset];
+                    }
                 }
             }
+#endif
         }
     }
 }
+
+/**
+ * Performs n iterations of the Richardson-Lucy deconvolution algorithm
+ * without using fast fourier transform, useful when the psf kernel size is
+ * small.
+ */
+void DeconvFilter::process() {
+    unsigned int iter;
+    uint32_t index;
+    for (index = 0; index < _size; index++) {
+        img[index] = _buffer[index];
+        orig[index] = _buffer[index];
+    }
+
+    for (index = 0; index < _size; index+=50000) {
+        printf("%e ", img[index]);
+    }
+
+    for (iter = 0; iter < _niter; iter++) {
+        convolve(scratch, img);
+        divide(scratch, orig, scratch);
+        convolve(scratch2, scratch);
+        multiply(img, img, scratch2);
+    }
+
+    for (index = 0; index < _size; index++)
+        _buffer[index] = img[index];
+}
+
 
 // quotient[i] = dividend[i] / divisor[i] forall i
 void DeconvFilter::divide(double* quotient, double* dividend, double* divisor) {
@@ -86,6 +132,7 @@ void DeconvFilter::multiply(double* product, double* factorA, double* factorB) {
         product[i] = factorA[i] * factorB[i];
 }
 
+
 // product[i] = product[i] * scalar forall i
 void DeconvFilter::scale(double* product, double scalar) {
     for (unsigned int i = 0; i < _size; i++)
@@ -93,42 +140,22 @@ void DeconvFilter::scale(double* product, double scalar) {
 }
 
 // product[i] = product[i] + offset forall i
-void DeconvFilter::scale(double* product, double scalar) {
+void DeconvFilter::offset(double* product, double amount) {
     for (unsigned int i = 0; i < _size; i++)
-        product[i] += offset;
+        product[i] += amount;
 }
 
-void minMax(double* buffer, long long size) {
+void minMax(double* buffer, int size) {
     double min = 1e9, max = -1e9;
-    for (long long i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) {
         if (buffer[i] > max) max = buffer[i];
         if (buffer[i] < min) min = buffer[i];
     }
     FPRINT("Min val = %e, Max val = %e", min, max);
 }
 
-/**
- * Performs n iterations of the Richardson-Lucy deconvolution algorithm
- * without using fast fourier transform, useful when the psf kernel size is
- * small.
- */
-void DeconvFilter::process() {
-    unsigned int iter;
-    memcpy(img, _buffer, _size*sizeof(double));
-    memcpy(orig, _buffer, _size*sizeof(double));
 
-    for (iter = 0; iter < _niter; iter++) {
-        //img_i+1 = img_i.((orig/(p*img_i))*p) where * is the convolution operator
-        convolve(scratch, img);
-        divide(scratch, orig, scratch);
-        convolve(scratch2, scratch);
-        multiply(img, img, scratch2);
-        scale(img, -0.5);
-    }
-    memcpy(_buffer, img, _size*sizeof(double));
-}
-
-#else //relatively large kernel then use the A*B=ifft(fft(A).*fft(B)) identity
+#else // if we have a relatively large kernel then use the A*B=ifft(fft(A).*fft(B)) identity
 
 /**
  * Returns an object ready to start filtering
@@ -143,7 +170,6 @@ DeconvFilter::DeconvFilter(
         int width, int height, unsigned int niter,
         double* inputPsf, int psfWidth, int psfHeight, double* buffer) :
 _width(width), _height(height), _niter(niter), _buffer(buffer){
-
     // Initiate the multithreaded fftw lib. The second line causes
     // a segfault during planning unfortunately so plans are single
     // threaded for now.
@@ -182,7 +208,7 @@ _width(width), _height(height), _niter(niter), _buffer(buffer){
     if (!imported) fftw_export_wisdom_to_filename("wisdom");
 
     // Save the PSF's complex conjugate
-    for (unsigned long i = 0; i < _size; i++) {
+    for (uint32_t i = 0; i < _size; i++) {
         conjFftPsf[i][0] = fftPsf[i][0];
         conjFftPsf[i][1] = -fftPsf[i][0];
     }
@@ -229,7 +255,6 @@ void DeconvFilter::process() {
  * if scale is not null then the results are multiplied by *scale
  */
 void DeconvFilter::multVec(fftw_complex* lval, fftw_complex* a, fftw_complex* b, int n, double *scale) {
-
     double tmp;
     if (--n>=0) {
         if (scale) {
@@ -280,7 +305,6 @@ void DeconvFilter::divVec(fftw_complex* lval, fftw_complex* a, fftw_complex* b, 
 void DeconvFilter::centrePsf(
         fftw_complex* mat, double* input, int width, int height,
         int psfWidth, int psfHeight) {
-
     int i, j, index = 0;
     for (i = 0; i < width; i++) {
         for (j = 0; j < height; j++, index++) {
