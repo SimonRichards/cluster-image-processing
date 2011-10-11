@@ -13,7 +13,7 @@ using namespace std;
 #define GAUSSIAN_KERNEL 2
 #define MOTION_KERNEL   3
 
-#define KERNEL 1
+#define KERNEL 2
 
 static double hardCodedPsf[] = {
 

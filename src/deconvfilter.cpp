@@ -4,7 +4,7 @@
 #include <cstring>
 #include <omp.h>
 
-//#define PARALLEL
+#define PARALLEL
 #define EPS 0.000001
 
 using namespace std;
@@ -52,36 +52,6 @@ DeconvFilter::~DeconvFilter() {
     delete[] scratch2;
 }
 
-void DeconvFilter::convolveCore(double* result, double* input, int y) {
-    int x;
-    uint32_t index = 0;
-    int px, py, pIndex;
-    int pxOffset = _psfWidth/2;
-    int pyOffset = _psfHeight/2;
-
-    for (x = 0; x < _width; x++, index++) {
-        result[index] = 0;
-        pIndex = 0;
-        for (py = 0; py < _psfHeight; py++) {
-            for (px = 0; px < _psfWidth; px++,pIndex++) {
-                if (_psf[pIndex] == 0.0) continue;
-                int absY = y - pyOffset + py;
-                if (
-                        absY < 0 &&
-                        absY >= _height
-                   ) break; // whole row is pointless
-
-                int absX = x - pxOffset + px;
-                if (
-                        absX >= 0 ||
-                        absX < _width
-                   ) {
-                    result[index] += input[absX + _width*absY] * _psf[pIndex];
-                }
-            }
-        }
-    }
-}
 
 /**
  * A convolution algorith optimised for small kernels
@@ -90,18 +60,23 @@ void DeconvFilter::convolveCore(double* result, double* input, int y) {
 void DeconvFilter::convolve(double* result, double* input) {
     int y;
     int x;
-    int index = 0;
+    int index;
     int px, py, pIndex;
     int pxOffset = _psfWidth/2;
     int pyOffset = _psfHeight/2;
 #ifdef PARALLEL
-#pragma omp parallel for firstprivate(pxOffset,pyOffset) firstprivate(index) private(x,y,px,py,pIndex) shared(result,input) default(none)
+#pragma omp parallel for
+#endif
+    for (index = 0; index < _size; index++)
+        result[index] = 0;
+
+#ifdef PARALLEL
+#pragma omp parallel for firstprivate(pxOffset,pyOffset) private(index,x,y,px,py,pIndex) shared(result,input) default(none)
 #endif
     for (y = 0; y < 1024; y++) {
-    //    convolveCore(result, input, y);
-
-    for (x = 0; x < 1024; x++, index++) {
-        result[index] = 0;
+        //index = y*_width;
+    for (x = 0; x < 1024; x++) {
+        //index++;
         pIndex = 0;
         for (py = 0; py < _psfHeight; py++) {
             for (px = 0; px < _psfWidth; px++,pIndex++) {
@@ -117,7 +92,7 @@ void DeconvFilter::convolve(double* result, double* input) {
                         absX >= 0 ||
                         absX < _width
                    ) {
-                    result[index] += input[absX + _width*absY] * _psf[pIndex];
+                    result[x+y*_width] += input[absX + _width*absY] * _psf[pIndex];
                 }
             }
         }
@@ -143,8 +118,8 @@ void DeconvFilter::process() {
         divide(scratch, orig, scratch);
         convolve(scratch2, scratch);
         multiply(img, img, scratch2);
+        saturate(img);
     }
-    saturate(img);
 
     for (index = 0; index < _size; index++)
         _buffer[index] = img[index];
@@ -155,8 +130,8 @@ void DeconvFilter::saturate(double *image) {
 #pragma omp parallel for
 #endif
     for (uint32_t i = 0; i < _size; i++)
-        if (image[i] > 255){ image[i] = 255; VAR(image[i]);}
-        else if (image[i] < 0){ image[i] = 0; VAR(image[i]);}
+        if (image[i] > 255) image[i] = 255;
+        else if (image[i] < 0) image[i] = 0;
 }
 
 // quotient[i] = dividend[i] / divisor[i] forall i
