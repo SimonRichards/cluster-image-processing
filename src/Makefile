@@ -12,6 +12,9 @@ OBJS     = $(addprefix build/,$(SRCS:.cpp=.o))
 
 all: $(OUTPUT)
 
+run:
+	build/$(OUTPUT)
+
 cluster-rl: $(OBJS)
 	$(CC) -o build/$(OUTPUT) $(OBJS) lib/* $(CXXFLAGS)
 

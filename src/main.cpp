@@ -4,6 +4,7 @@
 #include "./deconvfilter.h"
 #include "./imagequeue.h"
 
+// ----- Explicit declaration of the non-mpi version of the code ----- //
 void benchmark(int argc, char* argv[]);
 
 // ------- Enumerated values ------- //

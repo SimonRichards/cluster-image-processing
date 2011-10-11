@@ -1,5 +1,6 @@
 \documentclass{article}
-\usepackage{geometry}
+%\usepackage[2.5cm]{geometry}
+\usepackage{fullpage}
 \title{Parallel Image Processing Report}
 \date{\today}
 \author{Simon Richards (scr52@uclive.ac.nz)}
@@ -7,10 +8,76 @@
 \begin{document}
 \maketitle
 \section{Introduction}
-
+An exploration probe belonging to a Chinese mining company has returned from a
+two year mission to the Orion Nebula with  approximately 10 million images which
+have suffered both motion and gaussian blur. The company has put out a tender
+for the restoration of these images using the iterative and computationally
+expensive Richardson-Lucy deconvolution algorithm. This report details a brief
+investigation of the time and money costs for a potential bid on this contract.
 
 \section{Implementation}
+A single core working with a small point spread function kernel may complete ten
+iterations (enough to noticably improve the image) on a single channel,
+1024x1024 sized image in 2-10 seconds. Even at one second an image this would
+result in the entire dataset being processed in over 115 days, a delay which may
+be unnaceptable to the clients. To improve on this time, a double pronged
+approach to parallelism has been taken leveraging multiple core CPUs and
+multiple computers in a cluster.
+
+\subsection{Class Descriptions}
+The task is split into two main classes an io class for reading and writing
+images and a filter class capable of efficiently restoring images using the
+Richardson-Lucy algorithm.
+
+\subsubsection{ImageQueue}
+The first is a producer class which
+reads the input directory and pushes the names of all the image files contained in that
+directory onto a stack. On request it pops a file name off the stack and reads the
+data contained into a buffer using the cfitsio library. FITS is the flexible
+image transport system which is popular in scientific fields, especially
+astronomy, and is used in this project mostly for the simple way it handles
+double precision pixels and dynamic maximum/minimum values.
+
+\subsubsection{DeconvFilter}
+The second, and more important, class is the DeconvolutionFilter consumer class.
+This class takes a PSF and allocates all the memory space it needs on
+construction so that processing a single image is done without any unecessary
+overhead. For small kernel sizes (see discussion) the algorithm is as follows:
+\begin{verbatim}
+FOR iteration = 1 to niter
+    temp  = image*psf
+    temp  = original_image / temp;
+    temp  = temp*psf
+    image = temp.*image
+ENDFOR
+\end{verbatim}
+Where / is a per element division, * is the convolution operator and .* is a per
+element multiply.
+
+For large kernels the algorithm is equivalent however slightly more involved as
+convolution is achieved by performing a fast fourier transform on both matrices,
+multiplying the matrices' elements (not the same thing as matrix multiplication)
+and then performing an inverse fourier transform. The second option was not
+explored past a simple implementation using the FFTW (fastest fourier transform
+in the west) library.
+
+\subsubsection{Further Work}
+File IO times are minimal in comparison to that that of the deconvolution filter
+however we do wish to shave as much time off as possible. Therefore the final
+implementation of this project would see a concurrent producer-consumer model
+implemented using a semaphore to ensure that a new image is always ready for the
+filter process and that the algorithm is never waiting on a disk or network
+transfer. For this reason io times are not considered in the calculations seen
+in the results section.
+
 \subsection{OpenMP}
+OpenMP is an API for Fortran and C/C++ which provides a simple yet powerful
+interface to both task and data parallelism. Worker threads are instantied
+cheaply and inline with as little as a single line omp directive such as:
+\begin{verbatim}
+#pragma omp parallel for private(...) shared(...)
+\end{verbatim}
+
 
 \subsection{MPI}
 
