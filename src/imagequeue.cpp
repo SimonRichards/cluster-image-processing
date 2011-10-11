@@ -43,7 +43,7 @@ static double hardCodedPsf[] = {
  * Grabs all the *.fits file names from imagesDir and pushes them onto a stack
  * ready for reading into the given buffer later.
  */
-ImageQueue::ImageQueue(double* buffer, long long size, string imagesDir) {
+ImageQueue::ImageQueue(double* buffer, int size, string imagesDir, int numWorkers) {
     image = buffer;
     bufferSize = size;
     imagesDir.append("/");
@@ -95,14 +95,15 @@ double* ImageQueue::getPsf(int* width, int* height) {
 /**
  * Loads the next image from the stack off the hard disk and into the buffer.
  */
-void ImageQueue::pop() {
+void ImageQueue::pop(int id) {
     fitsfile *fptr;
     int status = 0,  nfound, anynull;
     long naxes[2], fpixel, npixels;
     string name = files.top();
-    outFile = name;
-    outFile.insert(name.length()-5, "fixed");
+    string outFile = name;
+    outFile.insert(name.length()-5, "-fixed");
     outFile.insert(outFile.find_last_of('/')+1,"out/");
+    outFiles[id] = outFile;
     if ( fits_open_file(&fptr, name.c_str(), READONLY, &status) )
         FERROR("Error opening file: %s code: %d", name.c_str(), status);
     files.pop();
@@ -127,11 +128,12 @@ void ImageQueue::pop() {
 /**
  * Saves the buffer to disk, file name taken from last image loaded.
  */
-void ImageQueue::save() {
+void ImageQueue::save(int id) {
     fitsfile *fptr;
     int status = 0;
     long fpixel = 1;
 
+    string outFile = outFiles[id];
     remove(outFile.c_str());
 
     if ( fits_create_file(&fptr, outFile.c_str(), &status) )

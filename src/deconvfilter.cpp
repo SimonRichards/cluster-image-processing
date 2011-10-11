@@ -116,6 +116,8 @@ void DeconvFilter::process() {
         orig[index] = _buffer[index];
     }
 
+    PerfTimer imageTimer;
+    imageTimer.begin();
     for (iter = 0; iter < _niter; iter++) {
         convolve(scratch, img);
         divide(scratch, orig, scratch);
@@ -123,6 +125,7 @@ void DeconvFilter::process() {
         multiply(img, img, scratch2);
         saturate(img);
     }
+    FPRINT("Finished %d iterations on an image in %f seconds", _niter, imageTimer.getElapsed());
 
     for (index = 0; index < _size; index++)
         _buffer[index] = img[index];
