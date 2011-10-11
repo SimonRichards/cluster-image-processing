@@ -13,7 +13,7 @@ class DeconvFilter {
 
 #ifndef USE_FFT
         double *_psf, *orig, *img, *scratch, *scratch2;
-        void convolve(double* result, double* input); // with _psf is implicit
+        void convolve(double* result, double* input);
         void divide(double* quotient, double* dividend, double* divisor);
         void multiply(double* product, double* factorA, double* factorB);
         void scale(double* product, double scalar);

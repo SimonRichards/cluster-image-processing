@@ -1,3 +1,6 @@
+// debug.h is a simple debugging tool for any project, calculate
+// run times, print variables and trace program execution. Or do
+// none of the above with a simple change to DEBUG_LEVEL
 #pragma once
 #include <ctime>
 #include <iostream>

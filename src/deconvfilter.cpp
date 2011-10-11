@@ -7,10 +7,12 @@
 #define PARALLEL
 #define EPS 0.000001
 
-using namespace std;
 
 #ifndef USE_FFT // small kernel size so use manual convolution
 
+/**
+ * Normalises a matrix so that all elements sum to 1.
+ */
 void normalise(double* data, size_t length) {
     unsigned int i;
     double sum = 0;
@@ -20,7 +22,10 @@ void normalise(double* data, size_t length) {
         data[i] /= sum;
 }
 
-// Allocates scratch space for the algorithm and stores parameters.
+/**
+ * Allocates scratch space for the algorithm and stores parameters.
+ * Width and height are fixed for future images, as is the psf.
+ */
 DeconvFilter::DeconvFilter(
         int width, int height, unsigned int niter,
         double* inputPsf, int psfWidth, int psfHeight, double* buffer) :
@@ -67,36 +72,34 @@ void DeconvFilter::convolve(double* result, double* input) {
 #ifdef PARALLEL
 #pragma omp parallel for
 #endif
-    for (index = 0; index < _size; index++)
+    for (index = 0; index < (unsigned int)_size; index++)
         result[index] = 0;
 
 #ifdef PARALLEL
 #pragma omp parallel for firstprivate(pxOffset,pyOffset) private(index,x,y,px,py,pIndex) shared(result,input) default(none)
 #endif
-    for (y = 0; y < 1024; y++) {
-        //index = y*_width;
-    for (x = 0; x < 1024; x++) {
-        //index++;
-        pIndex = 0;
-        for (py = 0; py < _psfHeight; py++) {
-            for (px = 0; px < _psfWidth; px++,pIndex++) {
-                if (_psf[pIndex] == 0.0) continue;
-                int absY = y - pyOffset + py;
-                if (
-                        absY < 0 &&
-                        absY >= _height
-                   ) break; // whole row is pointless
+    for (y = 0; y < 1024; y++) { // loop over rows (seperately by thread)
+        for (x = 0; x < 1024; x++) { // loop over columns
+            pIndex = 0;
+            for (py = 0; py < _psfHeight; py++) { // Iterate through the psf
+                for (px = 0; px < _psfWidth; px++,pIndex++) {
+                    if (_psf[pIndex] == 0.0) continue;
+                    int absY = y - pyOffset + py;
+                    if (
+                            absY < 0 &&
+                            absY >= _height
+                       ) break; // whole  psf row is pointless
 
-                int absX = x - pxOffset + px;
-                if (
-                        absX >= 0 ||
-                        absX < _width
-                   ) {
-                    result[x+y*_width] += input[absX + _width*absY] * _psf[pIndex];
+                    int absX = x - pxOffset + px;
+                    if (
+                            absX >= 0 ||
+                            absX < _width
+                       ) {
+                        result[x+y*_width] += input[absX + _width*absY] * _psf[pIndex];
+                    }
                 }
             }
         }
-    }
     }
 }
 
@@ -124,6 +127,8 @@ void DeconvFilter::process() {
     for (index = 0; index < _size; index++)
         _buffer[index] = img[index];
 }
+
+// -------- Helper functions --------- //
 
 void DeconvFilter::saturate(double *image) {
 #ifdef PARALLEL
@@ -180,6 +185,10 @@ void minMax(double* buffer, int size) {
     FPRINT("Min val = %e, Max val = %e", min, max);
 }
 
+
+
+
+// ------- Same as above except with FFTs, for use with larger kernel------ //
 
 #else // if we have a relatively large kernel then use the A*B=ifft(fft(A).*fft(B)) identity
 

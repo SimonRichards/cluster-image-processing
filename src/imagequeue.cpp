@@ -8,13 +8,11 @@
 #include <stdlib.h>
 #include "debug.h"
 
-using namespace std;
-#define SMALL_KERNEL    1
-#define GAUSSIAN_KERNEL 2
-#define MOTION_KERNEL   3
+using std::string;
 
-#define KERNEL 2
 
+// Choice of hard coded psf is made in main file,
+// A better way of doing this may be implemented later
 static double hardCodedPsf[] = {
 
 #if KERNEL == SMALL_KERNEL
@@ -43,6 +41,7 @@ static double hardCodedPsf[] = {
 
 /**
  * Grabs all the *.fits file names from imagesDir and pushes them onto a stack
+ * ready for reading into the given buffer later.
  */
 ImageQueue::ImageQueue(double* buffer, long long size, string imagesDir) {
     image = buffer;
@@ -58,7 +57,6 @@ ImageQueue::ImageQueue(double* buffer, long long size, string imagesDir) {
             if (name.length() > 5 && name.compare(name.size()-5,5, ".fits") == 0) {
                 name.insert(0, imagesDir);
                 files.push(name);
-                cout << name << endl;
             }
             ep = readdir (dp);
         } while (ep);
@@ -126,6 +124,9 @@ void ImageQueue::pop() {
         FPRINT("Read file %s size = %li", name.c_str(), npixels)
 }
 
+/**
+ * Saves the buffer to disk, file name taken from last image loaded.
+ */
 void ImageQueue::save() {
     fitsfile *fptr;
     int status = 0;
@@ -140,7 +141,6 @@ void ImageQueue::save() {
 
     if (fits_create_img(fptr, DOUBLE_IMG, 2, naxes, &status))
         FERROR("Error writing header: %s code: %d", outFile.c_str(), status);
-    cout << "Writing " << bufferSize << " pixels." << endl;
 
     fits_write_img(fptr, TDOUBLE, fpixel, bufferSize, image, &status);
     if (status) FERROR("Error writing file data: %s code: %d", outFile.c_str(), status);
@@ -153,6 +153,9 @@ void ImageQueue::save() {
 
 }
 
+/**
+ * @return the number of images remaining.
+ */
 uint32_t ImageQueue::remaining() {
     return files.size();
 }
