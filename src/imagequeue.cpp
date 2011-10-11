@@ -9,19 +9,37 @@
 #include "debug.h"
 
 using namespace std;
+#define SMALL_KERNEL    1
+#define GAUSSIAN_KERNEL 2
+#define MOTION_KERNEL   3
 
-/*
-static double hardCodedPsf[] = {1.0,2.0,3.0,2.0,1.0,
-                0.0,3.0,3.0,3.0,0.0,
-                3.0,3.0,5.0,3.0,3.0,
-                0.0,3.0,3.0,3.0,0.0,
-                1.0,2.0,3.0,2.0,1.0};
-*/
+#define KERNEL 1
 
-static double hardCodedPsf[] = {0,1,0,
-                                1,1,1,
-                                0,1,0};
-static int hardCodedPsfDim = 3;
+static double hardCodedPsf[] = {
+
+#if KERNEL == SMALL_KERNEL
+0,1,0,
+1,1,1,
+0,1,0};
+#define KERNEL_WIDTH  3
+#define KERNEL_HEIGHT 3
+
+#elif KERNEL == GAUSSIAN_KERNEL
+0.00000067 , 0.00002292 , 0.00019117 , 0.00038771 , 0.00019117 , 0.00002292 , 0.00000067,
+0.00002292 , 0.00078633 , 0.00655965 , 0.01330373 , 0.00655965 , 0.00078633 , 0.00002292,
+0.00019117 , 0.00655965 , 0.05472157 , 0.11098164 , 0.05472157 , 0.00655965 , 0.00019117,
+0.00038771 , 0.01330373 , 0.11098164 , 0.22508352 , 0.11098164 , 0.01330373 , 0.00038771,
+0.00019117 , 0.00655965 , 0.05472157 , 0.11098164 , 0.05472157 , 0.00655965 , 0.00019117,
+0.00002292 , 0.00078633 , 0.00655965 , 0.01330373 , 0.00655965 , 0.00078633 , 0.00002292,
+0.00000067 , 0.00002292 , 0.00019117 , 0.00038771 , 0.00019117 , 0.00002292 , 0.00000067};
+#define KERNEL_WIDTH  7
+#define KERNEL_HEIGHT 7
+
+#elif KERNEL == MOTION_KERNEL
+0.000817774, 0.0286433,  0.235018,  0.471041,  0.235018, 0.0286433, 0.000817774};
+#define KERNEL_WIDTH  7
+#define KERNEL_HEIGHT 1
+#endif
 
 /**
  * Grabs all the *.fits file names from imagesDir and pushes them onto a stack
@@ -71,7 +89,8 @@ ImageQueue::~ImageQueue() {
  * @return a pointer to the start of the psf data
  */
 double* ImageQueue::getPsf(int* width, int* height) {
-    *width = *height = hardCodedPsfDim;
+    *width = KERNEL_WIDTH;
+    *height = KERNEL_HEIGHT;
     return hardCodedPsf;
 }
 
@@ -82,7 +101,6 @@ void ImageQueue::pop() {
     fitsfile *fptr;
     int status = 0,  nfound, anynull;
     long naxes[2], fpixel, npixels;
-
     string name = files.top();
     outFile = name;
     outFile.insert(name.length()-5, "fixed");
@@ -135,6 +153,42 @@ void ImageQueue::save() {
 
 }
 
-bool ImageQueue::remain() {
-    return !files.empty();
+uint32_t ImageQueue::remaining() {
+    return files.size();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space}

@@ -1,7 +1,9 @@
 #pragma once
+#include <ctime>
 #include <iostream>
 #include <cstdio>
 #include <time.h>
+#include <omp.h>
 #define DEBUG_LEVEL 2
 
 #define LOC std::cout << "debug:" << __FILE__ << ":" << __LINE__ << " ";
@@ -35,6 +37,23 @@
 #endif
 
 //Performance timing (only prints if DEBUG_LEVEL > 1
-#define START_TIMER() time(NULL)
+#define START_TIMER() (clock() / (double) CLOCKS_PER_SEC)
 #define PRINT_TIMER(task, x) \
-    FPRINT(task" took %i seconds", uint16_t(time(NULL) - x));
+    FPRINT(task" took %g seconds", ((clock() / (double) CLOCKS_PER_SEC) - x) / omp_get_num_procs());
+
+
+class PerfTimer {
+    struct timespec start, finish;
+
+    public:
+        void begin() {
+            clock_gettime(CLOCK_MONOTONIC, &start);
+        }
+
+        double getElapsed() {
+            clock_gettime(CLOCK_MONOTONIC, &finish);
+            double elapsed = finish.tv_sec - start.tv_sec;
+            VAR(elapsed);
+            return elapsed + (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+        }
+};

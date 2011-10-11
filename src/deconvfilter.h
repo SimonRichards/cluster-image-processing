@@ -18,6 +18,8 @@ class DeconvFilter {
         void multiply(double* product, double* factorA, double* factorB);
         void scale(double* product, double scalar);
         void offset(double* product, double offset);
+        void saturate(double *image);
+        void convolveCore(double* result, double* input, int y);
 
         int psfStartOffset;
 #else

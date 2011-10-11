@@ -15,5 +15,5 @@ class ImageQueue {
         void pop();
         void save();
         double* getPsf(int* width, int* height);
-        bool remain();
+        uint32_t remaining();
 };
