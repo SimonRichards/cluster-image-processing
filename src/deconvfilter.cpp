@@ -24,14 +24,14 @@ void normalise(double* data, size_t length) {
 DeconvFilter::DeconvFilter(
         int width, int height, unsigned int niter,
         double* inputPsf, int psfWidth, int psfHeight, double* buffer) :
-_width(width),
-_height(height),
-_psfWidth(psfWidth),
-_psfHeight(psfHeight),
-_niter(niter),
-_size(width*height),
-_buffer(buffer),
-orig(buffer) {
+            _width(width),
+            _height(height),
+            _psfWidth(psfWidth),
+            _psfHeight(psfHeight),
+            _niter(niter),
+            _size(width*height),
+            _buffer(buffer),
+            orig(buffer) {
     // Save the PSF
     size_t psfSize = psfWidth * psfHeight;
     _psf = new double[psfSize];
@@ -97,11 +97,10 @@ void DeconvFilter::convolve(double* result, double* input) {
 #ifdef PARALLEL
 #pragma omp parallel for firstprivate(pxOffset,pyOffset) firstprivate(index) private(x,y,px,py,pIndex) shared(result,input) default(none)
 #endif
-    for (y = 0; y < 1024; y++)
+    for (y = 0; y < 1024; y++) {
     //    convolveCore(result, input, y);
 
-    for (x = 0; x < 1024; x++) {
-        index = index + 1;
+    for (x = 0; x < 1024; x++, index++) {
         result[index] = 0;
         pIndex = 0;
         for (py = 0; py < _psfHeight; py++) {
@@ -122,6 +121,7 @@ void DeconvFilter::convolve(double* result, double* input) {
                 }
             }
         }
+    }
     }
 }
 
