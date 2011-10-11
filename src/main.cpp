@@ -4,6 +4,8 @@
 #include "./deconvfilter.h"
 #include "./imagequeue.h"
 
+void benchmark(int argc, char* argv[]);
+
 // ------- Enumerated values ------- //
 #define SMALL_KERNEL    1
 #define GAUSSIAN_KERNEL 2
@@ -24,6 +26,9 @@ enum {
 #define BUFFER_SIZE WIDTH*HEIGHT
 
 int main(int argc, char* argv[]) {
+#if 1
+    benchmark(argc, argv);
+#else
     // mpi setup
     int numProcs;
     int rank, flag;
@@ -103,5 +108,7 @@ int main(int argc, char* argv[]) {
     }
 
     MPI_Finalize();
+#endif
     return 0;
 }
+
