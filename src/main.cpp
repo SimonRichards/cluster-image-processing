@@ -6,6 +6,7 @@
 
 // ----- Explicit declaration of the non-mpi version of the code ----- //
 void benchmark(int argc, char* argv[]);
+#define BENCHMARKING // <-- DELETEME to play with the MPI version
 
 // ------- Enumerated values ------- //
 enum {
@@ -22,7 +23,7 @@ enum {
 #define BUFFER_SIZE WIDTH*HEIGHT
 
 int main(int argc, char* argv[]) {
-#if 1
+#ifdef BENCHMARKING
     benchmark(argc, argv);
 #else
     // mpi setup

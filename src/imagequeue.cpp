@@ -12,8 +12,8 @@ using std::string;
 
 #define KERNEL SMALL_KERNEL
 
-// Choice of hard coded psf is made in main file,
-// A better way of doing this may be implemented later
+//----- Kernel is chosen from the selection below, to be improved later. -----//
+
 static double hardCodedPsf[] = {
 #if KERNEL == SMALL_KERNEL
 0,1,0,
@@ -38,6 +38,9 @@ static double hardCodedPsf[] = {
 #define KERNEL_WIDTH  7
 #define KERNEL_HEIGHT 1
 #endif
+
+
+
 /**
  * Grabs all the *.fits file names from imagesDir and pushes them onto a stack
  * ready for reading into the given buffer later.
@@ -77,8 +80,7 @@ ImageQueue::ImageQueue(double* buffer, int size, string imagesDir, int numWorker
 }
 
 
-ImageQueue::~ImageQueue() {
-}
+ImageQueue::~ImageQueue() {}
 
 /**
  * @param width the output psf width
@@ -125,7 +127,8 @@ void ImageQueue::pop(int id) {
 }
 
 /**
- * Saves the buffer to disk, file name taken from last image loaded.
+ * Saves the buffer to disk.
+ * Meta data is mapped to the process id passed in.
  */
 void ImageQueue::save(int id) {
     fitsfile *fptr;

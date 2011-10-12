@@ -9,6 +9,13 @@
 #define NITER 10
 
 #define BUFFER_SIZE WIDTH*HEIGHT
+
+
+/**
+ * A benchmark routine for a single, multi-core machine
+ * to calculate the average execution time of the
+ * Richardson-Lucy implementation.
+ */
 int benchmark(int argc, char* argv[]) {
     static double buffer[BUFFER_SIZE];
     int psfWidth, psfHeight;
@@ -18,7 +25,6 @@ int benchmark(int argc, char* argv[]) {
     // Set up producer
     ImageQueue images(buffer, BUFFER_SIZE, "../images", 1);
     double* psf = ImageQueue::getPsf(&psfWidth, &psfHeight);
-    VAR(psfWidth);
 
     // Set up consumer
     DeconvFilter filter(WIDTH, HEIGHT, niter, psf, psfWidth, psfHeight, buffer);

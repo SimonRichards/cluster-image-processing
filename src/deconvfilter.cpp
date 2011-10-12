@@ -130,7 +130,6 @@ void DeconvFilter::process() {
         _buffer[index] = img[index];
 }
 
-// -------- Helper functions --------- //
 
 void DeconvFilter::saturate(double *image) {
 #ifdef PARALLEL
@@ -159,6 +158,7 @@ void DeconvFilter::multiply(double* product, double* factorA, double* factorB) {
         product[i] = factorA[i] * factorB[i];
 }
 
+// -------- Helper functions (unused) --------- //
 
 // product[i] = product[i] * scalar forall i
 void DeconvFilter::scale(double* product, double scalar) {
@@ -251,7 +251,9 @@ _width(width), _height(height), _niter(niter), _buffer(buffer){
     }
 }
 
-
+/**
+ * Destroy all allocated memory
+ */
 DeconvFilter::~DeconvFilter() {
     fftw_free(in);
     fftw_free(scratch);
@@ -263,6 +265,9 @@ DeconvFilter::~DeconvFilter() {
     fftw_cleanup_threads();
 }
 
+/**
+ * Top level of the FFT-based LR algorithm
+ */
 void DeconvFilter::process() {
     fftw_complex *temp;
     unsigned int i, iter;

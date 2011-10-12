@@ -1,9 +1,11 @@
 CC       = mpic++
-#mpic++
 OUTPUT   = cluster-rl
 INCLUDES = /usr/include/mpi
 INCLUDES+= include
-FFT_FLAGS= -DUSE_FFT -lfftw3_omp -lfftw3 -lm -fopenmp -lrt
+
+# Add these to use the FFT version
+FFT_FLAGS= -DUSE_FFT -lfftw3_omp -lfftw3 -lm -lrt
+
 CPPFLAGS = -std=gnu++0x -fopenmp -Wall -pedantic -Wshadow -O3
 CPPFLAGS+= $(addprefix -I,$(INCLUDES))
 CXXFLAGS = -Llib -fopenmp
