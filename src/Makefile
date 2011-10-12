@@ -4,7 +4,7 @@ OUTPUT   = cluster-rl
 INCLUDES = /usr/include/mpi
 INCLUDES+= include
 FFT_FLAGS= -DUSE_FFT -lfftw3_omp -lfftw3 -lm -fopenmp -lrt
-CPPFLAGS = -std=gnu++0x -g -fopenmp -Wall -pedantic -Wshadow
+CPPFLAGS = -std=gnu++0x -fopenmp -Wall -pedantic -Wshadow -O3
 CPPFLAGS+= $(addprefix -I,$(INCLUDES))
 CXXFLAGS = -Llib -fopenmp
 SRCS     = $(wildcard *.cpp)

@@ -18,6 +18,7 @@ int benchmark(int argc, char* argv[]) {
     // Set up producer
     ImageQueue images(buffer, BUFFER_SIZE, "../images", 1);
     double* psf = ImageQueue::getPsf(&psfWidth, &psfHeight);
+    VAR(psfWidth);
 
     // Set up consumer
     DeconvFilter filter(WIDTH, HEIGHT, niter, psf, psfWidth, psfHeight, buffer);

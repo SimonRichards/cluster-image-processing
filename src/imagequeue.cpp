@@ -10,11 +10,11 @@
 
 using std::string;
 
+#define KERNEL SMALL_KERNEL
 
 // Choice of hard coded psf is made in main file,
 // A better way of doing this may be implemented later
 static double hardCodedPsf[] = {
-
 #if KERNEL == SMALL_KERNEL
 0,1,0,
 1,1,1,
@@ -38,7 +38,6 @@ static double hardCodedPsf[] = {
 #define KERNEL_WIDTH  7
 #define KERNEL_HEIGHT 1
 #endif
-
 /**
  * Grabs all the *.fits file names from imagesDir and pushes them onto a stack
  * ready for reading into the given buffer later.
@@ -162,38 +161,3 @@ uint32_t ImageQueue::remaining() {
     return files.size();
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space// Allocate space}

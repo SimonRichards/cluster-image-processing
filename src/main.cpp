@@ -8,10 +8,6 @@
 void benchmark(int argc, char* argv[]);
 
 // ------- Enumerated values ------- //
-#define SMALL_KERNEL    1
-#define GAUSSIAN_KERNEL 2
-#define MOTION_KERNEL   3
-
 enum {
     PSF,
     IMG,
@@ -22,7 +18,6 @@ enum {
 #define WIDTH 1024
 #define HEIGHT 1024
 #define NITER 10  // Number of iterations per image
-#define KERNEL 1 // choose from the above
 
 #define BUFFER_SIZE WIDTH*HEIGHT
 
