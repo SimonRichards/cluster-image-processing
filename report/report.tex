@@ -15,6 +15,15 @@ for the restoration of these images using the iterative and computationally
 expensive Richardson-Lucy deconvolution algorithm. This report details a brief
 investigation of the time and money costs for a potential bid on this contract.
 
+\paragraph{Test Rig}
+All performance metrics, unless explicitly stated otherwise, were calculated on
+a linux VM running on an AMD Deneb quad-core 3.2GHz cpu with 8 gigabytes of
+memory. The effects of running the program on other systems was not explored and
+it was assumed that no order-of-magnitude change could be attained. That said,
+non-trivial gains could definitely be achieved by upgrading from what is now a
+two year old architecture and possibly the overheads imposed by running a
+virtual machine.
+
 \section{Implementation}
 A single core working with a small point spread function kernel may complete ten
 iterations (enough to noticably improve the image) on a single channel,
@@ -72,14 +81,23 @@ in the results section.
 
 \subsection{OpenMP}
 OpenMP is an API for Fortran and C/C++ which provides a simple yet powerful
-interface to both task and data parallelism. Worker threads are instantied
+interface to both task and data parallelism. Worker threads are instantiated
 cheaply and inline with as little as a single line omp directive such as:
 \begin{verbatim}
 #pragma omp parallel for private(...) shared(...)
 \end{verbatim}
 
+Adding this directive to the convolution function expressed previously resulted
+in an execution speed 0.90*(number of cores) times faster than the single
+threaded implementation. The other steps of the algorithm were also parallised
+in a similar manner however as they were all O(n) the effect of doing this was
+negligible.
 
 \subsection{MPI}
+Message Passing Interface is a popular standard for communication between
+processes in distributed memory systems such as cluster compute set ups.
+
+It enables easy execution and communication between processes
 
 \subsection{Kernel Size}
 

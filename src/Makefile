@@ -12,7 +12,7 @@ OBJS     = $(addprefix build/,$(SRCS:.cpp=.o))
 
 all: $(OUTPUT)
 
-run:
+run: all
 	build/$(OUTPUT)
 
 cluster-rl: $(OBJS)
