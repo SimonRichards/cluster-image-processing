@@ -63,9 +63,7 @@ DeconvFilter::~DeconvFilter() {
  * result = input * _psf
  */
 void DeconvFilter::convolve(double* result, double* input) {
-    int y;
-    int x;
-    int index;
+    int x, y, index;
     int px, py, pIndex;
     int pxOffset = _psfWidth/2;
     int pyOffset = _psfHeight/2;
@@ -81,6 +79,7 @@ void DeconvFilter::convolve(double* result, double* input) {
     for (y = 0; y < 1024; y++) { // loop over rows (seperately by thread)
         for (x = 0; x < 1024; x++) { // loop over columns
             pIndex = 0;
+            index = x+y*_width; // gcc optimises to this anyway if this is placed deeper
             for (py = 0; py < _psfHeight; py++) { // Iterate through the psf
                 for (px = 0; px < _psfWidth; px++,pIndex++) {
                     if (_psf[pIndex] == 0.0) continue;
@@ -95,7 +94,7 @@ void DeconvFilter::convolve(double* result, double* input) {
                             absX >= 0 ||
                             absX < _width
                        ) {
-                        result[x+y*_width] += input[absX + _width*absY] * _psf[pIndex];
+                        result[index] += input[absX + _width*absY] * _psf[pIndex];
                     }
                 }
             }

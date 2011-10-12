@@ -13,7 +13,7 @@ int benchmark(int argc, char* argv[]) {
     static double buffer[BUFFER_SIZE];
     int psfWidth, psfHeight;
 
-    unsigned int niter = argc > 1 ? atoi(argv[1]) : 20;
+    unsigned int niter = argc > 1 ? atoi(argv[1]) : 10;
 
     // Set up producer
     ImageQueue images(buffer, BUFFER_SIZE, "../images", 1);

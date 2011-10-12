@@ -21,7 +21,7 @@ enum {
 // ------- Settings ------ //
 #define WIDTH 1024
 #define HEIGHT 1024
-#define NITER 1  // Number of iterations per image
+#define NITER 10  // Number of iterations per image
 #define KERNEL 1 // choose from the above
 
 #define BUFFER_SIZE WIDTH*HEIGHT

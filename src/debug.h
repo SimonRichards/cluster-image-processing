@@ -56,7 +56,6 @@ class PerfTimer {
         double getElapsed() {
             clock_gettime(CLOCK_MONOTONIC, &finish);
             double elapsed = finish.tv_sec - start.tv_sec;
-            VAR(elapsed);
             return elapsed + (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
         }
 };
