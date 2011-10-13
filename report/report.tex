@@ -19,11 +19,14 @@ investigation of the time and money costs for a potential bid on this contract.
 \paragraph{Test Rig}
 All performance metrics, unless explicitly stated otherwise, were calculated on
 a Linux VM running on an AMD Deneb quad-core 3.2GHz CPU with 8 gigabytes of
-memory. The effects of running the program on other systems was not explored and
-it was assumed that no order-of-magnitude change could be attained. That said,
-non-trivial gains could definitely be achieved by upgrading from what is now a
-two year old architecture and also possibly by removing the overheads imposed by running a
-virtual machine.
+memory.
+
+The effects of running the program on other systems was explored at a late
+stage in the project and it was found that a quad core Intel i7 processor could run 26\%
+faster than the machine used to benchmark the algorith.
+
+The algorithm was also run on an Amazon `Hi-CPU' instance and timed to run ~3\%
+slower than the AMD rig, this difference was ignored in the section on pricing.
 
 \section{Implementation}
 A single core working with a small point spread function kernel may complete ten
@@ -92,7 +95,9 @@ implementation of this project would see a concurrent producer-consumer model
 implemented using a semaphore to ensure that a new image is always ready for the
 filter thread and that the algorithm is never waiting on a disk or network
 transfer. For this reason IO times are not considered in the calculations seen
-in the results section.
+in the results section. Also the MPI side of the code is untested due to
+a dependency on having a recent version of gcc installed on the cluster so this
+assumption is necessary.
 
 \subsection{OpenMP}
 OpenMP is an API for Fortran and C/C++ which provides a simple yet powerful
@@ -193,6 +198,29 @@ All of these figures will need to be re-evaluated depending on both caveats
 mentioned in the Unknown Variables section, the client's expectations for
 time till completion and the number and speed of cores in the purchased or hired
 computers.
+
+\section{Pricing Estimate}
+As previously mentioned an Amazon EC2 instance was also used to benchmark the
+program achieving similar execution speeds to the AMD machine. Since extra instances
+may be created at will the costs are simple to estimate and the time till completion
+is dependent only on the IO speed of the $10e6*8*1024*1024bytes = 76Terabytes$ hard
+drive array supplied by the customer.
+
+On-demand instances: at \$0.65 per hour.
+\[
+10e6*0.34*0.68/3600 = \$642
+\]
+
+`Spot' instances: the spot instance price varies with demand and is currently sitting
+at \$0.21, without knowing the supply elasticity we could probably assume that a dozen
+instances are not going to push the price past \$0.25. At this price the total computation
+costs become \$236.
+
+In addition to the computational cost this approach will require shipping the client's
+storage device to Amazon and paying to have either the data transferred, or set up to
+read directly off the device. The calculator Amazon provides for estimating the charges
+to transfer data onto their system estimates that the former would cost over \$5500 so
+the latter option would be preferable and significantly cheaper.
 
 \end{document}
 
