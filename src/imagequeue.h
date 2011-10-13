@@ -6,7 +6,7 @@
 class ImageQueue {
     private:
         double* image;
-        long long bufferSize;
+        int bufferSize;
         std::stack<std::string> files;
         std::map<int,std::string> outFiles;
 

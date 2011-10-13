@@ -75,7 +75,7 @@ ImageQueue::ImageQueue(double* buffer, int size, string imagesDir, int numWorker
             PRINT("1 file found");
             break;
         default:
-            FPRINT("%d files found", files.size());
+            FPRINT("%d files found", (int)files.size());
     }
 }
 
