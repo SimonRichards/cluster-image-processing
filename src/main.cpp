@@ -1,5 +1,5 @@
 #include <ctime>
-#include <mpi.h>
+//#include <mpi.h>
 #include "./debug.h"
 #include "./deconvfilter.h"
 #include "./imagequeue.h"
